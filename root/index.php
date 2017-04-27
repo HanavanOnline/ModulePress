@@ -21,3 +21,25 @@
       }
     }
   }
+
+  private function callHooks($key, $data = null) {
+    foreach($hooks as $hook) {
+      if($hooks->getKey() == $key) {
+        $hook->call($data);
+      }
+    }
+  }
+
+  $dir    = '/addons';
+  $files  = scandir($dir);
+
+  foreach($files as $file) {
+    $fullFile = $dir . $file . '/addon.php';
+    if(file_exists($fullFile)) {
+      include_once $fullFile;
+    }
+  }
+
+  callHooks('init');
+
+  callHooks('page_load');
