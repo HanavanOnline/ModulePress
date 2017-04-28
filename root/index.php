@@ -22,7 +22,7 @@
     }
   }
 
-  private function callHooks($key, $data = null) {
+  function callHooks($key, $data = null) {
     foreach($hooks as $hook) {
       if($hooks->getKey() == $key) {
         $hook->call($data);
@@ -34,7 +34,7 @@
   $files  = scandir($dir);
 
   foreach($files as $file) {
-    $fullFile = $dir . $file . '/addon.php';
+    $fullFile = $dir . '/' . $file . '/addon.php';
     if(file_exists($fullFile)) {
       include_once $fullFile;
     }

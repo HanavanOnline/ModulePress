@@ -1,5 +1,5 @@
 DirectoryIndex index.php
 RewriteEngine On
-RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]
+RewriteRule ^(.*)$ /root/index.php?route=$1 [QSA,L]
 #RewriteRule ([a-zA-Z0-9\/_]+)*\?([a-zA-Z0-9\/\_=&]+) index.php?lowkey=$1&params=$2 [QSA,L]
 #RewriteRule ([a-zA-Z0-9\/_]+)* index.php?lowkey=$1 [QSA]
