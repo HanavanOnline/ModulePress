@@ -14,7 +14,11 @@
       $this->database = $database;
       $this->username = $username;
       $this->password = $password;
-      $this->pdo = new PDO('mysql:host='.$host.';dbname='.$database, $username, $password);
+      try {
+
+      } catch(Exception $e) {
+        $this->pdo = new PDO('mysql:host='.$host.';dbname='.$database, $username, $password);
+      }
     }
 
     public function getTableExists($table) {

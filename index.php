@@ -1,12 +1,13 @@
 <?php
 
-  include_once('mp-config.php');
+  include_once('root/mp-config.php');
+  include_once('root/database.php');
 
   $route = $_GET['route'];
 
   $database = new Database(DB_URI, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 
-  echo 'hey';
+  echo 'heey';
 
   $hooks = array();
 
@@ -30,14 +31,19 @@
     }
   }
 
-  $dir    = '/addons';
+  $dir    = 'addons';
   $files  = scandir($dir);
 
+  clearstatcache();
+
   foreach($files as $file) {
-    $fullFile = $dir . '/' . $file . '/addon.php';
+    $fullFile = DIRECTORY_SEPARATOR . 'addons' . DIRECTORY_SEPARATOR . $file . DIRECTORY_SEPARATOR . 'addon.php';
+    echo $fullFile;
     if(file_exists($fullFile)) {
       include_once $fullFile;
+      echo 'EXISTS';
     }
+    echo '<br />';
   }
 
   callHooks('init');
