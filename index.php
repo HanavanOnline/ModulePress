@@ -73,19 +73,23 @@
         }
       }
     } else {
-      foreach($details as $det_key => $det_val) {
-        foreach($modules as $module) {
-          $add = true;
-          $local_details = $details;
-          foreach($module->getDetails() as $mod_det_key => $mod_det_val) {
-            if($mod_det_key == $det_key) {
-              if($mod_det_val != $det_val)
-                $add = false;
-              unset($local_details[$mod_det_key]);
+      if($details != null) {
+        foreach($details as $det_key => $det_val) {
+          foreach($modules as $module) {
+            $add = true;
+            $local_details = $details;
+            if($module->getDetails() != null) {
+              foreach($module->getDetails() as $mod_det_key => $mod_det_val) {
+                if($mod_det_key == $det_key) {
+                  if($mod_det_val != $det_val)
+                    $add = false;
+                  unset($local_details[$mod_det_key]);
+                }
+              }
             }
-          }
-          if($add && sizeof($local_details) == 0) {
-            $cur[] = $module;
+            if($add && sizeof($local_details) == 0) {
+              $cur[] = $module;
+            }
           }
         }
       }
@@ -121,6 +125,8 @@
     echo '<br />';
   }
   doHook('post_addons_loaded');
+
+  doHook('pre_page_load');
 
   doHook('page_load');
 
