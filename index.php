@@ -3,6 +3,7 @@
   include_once('root/mp-config.php');
   include_once('root/database.php');
   include_once('root/hook.php');
+  include_once('root/addon.php');
 
   error_reporting(E_ALL);
   ini_set("display_errors", 1);
@@ -12,6 +13,7 @@
   $database = new Database(DB_URI, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 
   $hooks = array();
+  $addons = array();
 
   function addHook($key, $func) {
     global $hooks;
@@ -36,6 +38,30 @@
     }
   }
 
+  function loadAddon($name, $version, $path) {
+    global $addons;
+    $cur = new Addon($name, $version, $path);
+    $addons[] = $cur;
+    return $cur;
+  }
+
+  function mlog($message) {
+    echo '<br />',$message,'<br />';
+  }
+
+  function getAddons($key = null) {
+    global $addons;
+    if($key == null)
+      return $addons;
+    $ret = array();
+    foreach($addons as $addon) {
+      if (strpos($addon, $key) !== false) {
+        $ret[] = $addon;
+      }
+    }
+    return $ret;
+  }
+
   $dir    = 'addons';
   $files  = scandir($dir);
 
@@ -51,6 +77,8 @@
   }
 
   callHooks('init');
+
+  callHooks('addon_load');
 
   callHooks('page_load');
 
