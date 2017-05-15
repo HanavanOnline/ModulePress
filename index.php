@@ -34,9 +34,9 @@
     }
   }
 
-  function loadAddon($name, $version, $path) {
+  function loadAddon($slug, $name, $version, $path) {
     global $addons;
-    $cur = new Addon($name, $version, $path);
+    $cur = new Addon($slug, $name, $version, $path);
     $addons[] = $cur;
     return $cur;
   }
@@ -51,7 +51,7 @@
       return $addons;
     $ret = array();
     foreach($addons as $addon) {
-      if (strpos($addon, $key) !== false) {
+      if (strpos($addon->getSlug(), $key) !== false) {
         $ret[] = $addon;
       }
     }
@@ -96,36 +96,36 @@
     }
   }
 
-  function getCurrentTheme() {
-    return 'hanavanonlinetesttheme';
+  function getCurrentThemeFolder() {
+    return 'Hanavan Online Test Theme';
   }
 
   // ======= END CORE FUNCTIONS  ======= //
 
-  $dir    = 'addons';
-  $files  = scandir($dir);
+  $addon_files = scandir('addons');
+  $theme_files = scandir('theme');
 
   clearstatcache();
 
+  include_once getcwd() . DIRECTORY_SEPARATOR . 'theme' . DIRECTORY_SEPARATOR . getCurrentThemeFolder() . DIRECTORY_SEPARATOR . 'theme.php';
+
   doHook('pre_addons_loaded');
 
-  foreach($files as $file) {
+  foreach($addon_files as $file) {
     $fullFile = getcwd() . DIRECTORY_SEPARATOR . 'addons' . DIRECTORY_SEPARATOR . $file . DIRECTORY_SEPARATOR . 'addon.php';
-    echo $fullFile;
+
     if(file_exists($fullFile)) {
       include_once $fullFile;
-      echo '<br />Size of ', sizeof($addons), '<br />';
-      doHook('addon_loaded', array('name' => 'test', 'addon' => $addons[sizeof($addons)-1]));
+      doHook('addon_loaded', array('addon' => $addons[sizeof($addons)-1]));
     }
     echo '<br />';
   }
-
   doHook('post_addons_loaded');
 
   doHook('page_load');
 
   $time_end = microtime(true);
 
-  echo 'It took ', ($time_end - $time_start), ' microseconds to load this page.<br />Start: ', $time_start, '; End: ', $time_end;
+  mlog('It took ' . ($time_end - $time_start) . ' microseconds to load this page.<br />Start: ' . $time_start . '; End: ' . $time_end);
 
   ?>

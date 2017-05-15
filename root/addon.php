@@ -2,13 +2,19 @@
 
   class Addon {
     private $name = null;
+    private $slug = null;
     private $version = null;
     private $path = null;
 
-    function __construct($name, $version, $path) {
+    function __construct($slug, $name, $version, $path) {
+      $this->slug = $slug;
       $this->name = $name;
       $this->version = $version;
       $this->path = $path;
+    }
+
+    public function getSlug() {
+      return $this->slug;
     }
 
     public function getName() {

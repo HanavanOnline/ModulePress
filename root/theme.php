@@ -17,7 +17,7 @@
     }
 
     public function fail($reason) {
-      echo "$this->getName() failed because: $reason";
+      mlog($this->getName(), " failed because: $reason");
     }
 
   }
