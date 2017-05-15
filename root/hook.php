@@ -18,7 +18,11 @@
         call_user_func($this->func, $data);
         return;
       }
-      call_user_func_array($func, $data);
+      if(is_array($data)) {
+        call_user_func($this->func, $data);
+        return;
+      }
+      call_user_func_array($this->func, $data);
     }
 
   }

@@ -5,6 +5,7 @@
   include_once('root/mp-config.php');
   include_once('root/database.php');
   include_once('root/hook.php');
+  include_once('root/theme.php');
   include_once('root/addon.php');
   include_once('root/module.php');
 
@@ -25,15 +26,6 @@
   }
 
   function doHook($key, $data = null) {
-    global $hooks;
-    foreach($hooks as $hook) {
-      if($hook->getKey() == $key) {
-        $hook->call($data);
-      }
-    }
-  }
-
-  function callHooks($key, $data = null) {
     global $hooks;
     foreach($hooks as $hook) {
       if($hook->getKey() == $key) {
@@ -89,7 +81,7 @@
             if($mod_det_key == $det_key) {
               if($mod_det_val != $det_val)
                 $add = false;
-                unset($local_details[$mod_det_key]);
+              unset($local_details[$mod_det_key]);
             }
           }
           if($add && sizeof($local_details) == 0) {
@@ -104,25 +96,33 @@
     }
   }
 
+  function getCurrentTheme() {
+    return 'hanavanonlinetesttheme';
+  }
+
+  // ======= END CORE FUNCTIONS  ======= //
+
   $dir    = 'addons';
   $files  = scandir($dir);
 
   clearstatcache();
+
+  doHook('pre_addons_loaded');
 
   foreach($files as $file) {
     $fullFile = getcwd() . DIRECTORY_SEPARATOR . 'addons' . DIRECTORY_SEPARATOR . $file . DIRECTORY_SEPARATOR . 'addon.php';
     echo $fullFile;
     if(file_exists($fullFile)) {
       include_once $fullFile;
+      echo '<br />Size of ', sizeof($addons), '<br />';
+      doHook('addon_loaded', array('name' => 'test', 'addon' => $addons[sizeof($addons)-1]));
     }
     echo '<br />';
   }
 
-  callHooks('init');
+  doHook('post_addons_loaded');
 
-  callHooks('addon_load');
-
-  callHooks('page_load');
+  doHook('page_load');
 
   $time_end = microtime(true);
 
