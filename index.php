@@ -69,7 +69,6 @@
     $modules[] = $module;
   }
 
-  /** TODO : Implement loading of modules by details. */
   function loadModule($key, $details = null) {
     global $modules;
     $cur = array();
@@ -77,6 +76,23 @@
       foreach($modules as $module) {
         if(strpos($module->getKey(), $key) !== false) {
           $cur[] = $module;
+        }
+      }
+    } else {
+      foreach($details as $det_key => $det_val) {
+        foreach($modules as $module) {
+          $add = true;
+          $local_details = $details;
+          foreach($module->getDetails() as $mod_det_key => $mod_det_val) {
+            if($mod_det_key == $det_key) {
+              if($mod_det_val != $det_val)
+                $add = false;
+                unset($local_details[$mod_det_key]);
+            }
+          }
+          if($add && sizeof($local_details) == 0) {
+            $cur[] = $module;
+          }
         }
       }
     }
