@@ -15,7 +15,7 @@
 
     public function call($data = null) {
       if($data == null) {
-        call_user_func($func);
+        call_user_func($this->func, $data);
         return;
       }
       call_user_func_array($func, $data);
