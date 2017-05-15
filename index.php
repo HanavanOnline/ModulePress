@@ -4,6 +4,7 @@
   include_once('root/database.php');
   include_once('root/hook.php');
   include_once('root/addon.php');
+  include_once('root/module.php');
 
   error_reporting(E_ALL);
   ini_set("display_errors", 1);
