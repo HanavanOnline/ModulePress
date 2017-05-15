@@ -1,5 +1,7 @@
 <?php
 
+  $time_start = microtime(true);
+
   include_once('root/mp-config.php');
   include_once('root/database.php');
   include_once('root/hook.php');
@@ -121,5 +123,9 @@
   callHooks('addon_load');
 
   callHooks('page_load');
+
+  $time_end = microtime(true);
+
+  echo 'It took ', ($time_end - $time_start), ' microseconds to load this page.<br />Start: ', $time_start, '; End: ', $time_end;
 
   ?>
