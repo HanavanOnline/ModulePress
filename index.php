@@ -15,6 +15,7 @@
 
   $hooks = array();
   $addons = array();
+  $modules = array();
 
   function addHook($key, $func) {
     global $hooks;
@@ -61,6 +62,28 @@
       }
     }
     return $ret;
+  }
+
+  function addModule($module) {
+    global $modules;
+    $modules[] = $module;
+  }
+
+  /** TODO : Implement loading of modules by details. */
+  function loadModule($key, $details = null) {
+    global $modules;
+    $cur = array();
+    if($key != null) {
+      foreach($modules as $module) {
+        if(strpos($module->getKey(), $key) !== false) {
+          $cur[] = $module;
+        }
+      }
+    }
+    foreach($cur as $module) {
+      $module->getOpen();
+      $module->getClose();
+    }
   }
 
   $dir    = 'addons';
