@@ -8,18 +8,29 @@
   include_once('root/theme.php');
   include_once('root/addon.php');
   include_once('root/module.php');
+  include_once('root/resource.php');
 
   error_reporting(E_ALL);
   ini_set("display_errors", 1);
 
   $route = $_GET['route'];
 
+  if(!isset($route) || empty($route))
+    $route = '';
+
   $database = new Database(DB_URI, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 
   $hooks = array();
   $addons = array();
   $modules = array();
+  $resources = array();
 
+  function getRoute() {
+    global $route;
+    return $route;
+  }
+
+  // Add a hook that may be called for future use. It is possible that the hook may never be called. $key is the name of the hook. $func is the callback function
   function addHook($key, $func) {
     global $hooks;
     $hooks[] = new Hook($key, $func);
@@ -45,6 +56,7 @@
     echo '<br />',$message,'<br />';
   }
 
+  // Get a list of addons as an array. $key is used to match addon slug to the $key provided. This array can be empty.
   function getAddons($key = null) {
     global $addons;
     if($key == null)
@@ -100,6 +112,40 @@
     }
   }
 
+  function addResourceLazy($url, $name, $content_type = 'text/css') {
+    global $resources;
+    $resources[] = new Resource($url, $name, $content_type);
+  }
+
+  function addResource($resource) {
+    global $resources;
+    $resources[] = $resource;
+  }
+
+  function getResourcesByName($key) {
+    global $resources;
+    $ret = array();
+    foreach($resources as $resource) {
+      if(strpos($resource->getName(), $key) !== false) {
+        $ret[] = $resource;
+      }
+    }
+    return $ret;
+  }
+
+  function getResourcesByURL($url) {
+    global $resources;
+    $ret = array();
+    if($url == '' || !isset($url) || empty($url))
+      return $ret;
+    foreach($resources as $resource) {
+      if(strpos($resource->getURL(), $url) !== false) {
+        $ret[] = $resource;
+      }
+    }
+    return $ret;
+  }
+
   function getCurrentThemeFolder() {
     return 'Hanavan Online Test Theme';
   }
@@ -109,29 +155,88 @@
   $addon_files = scandir('addons');
   $theme_files = scandir('theme');
 
+  for($x = 0; $x < sizeof($addon_files); $x++) {
+    $file = $addon_files[$x];
+    $addon_files[$x] = getcwd() . DIRECTORY_SEPARATOR . 'addons' . DIRECTORY_SEPARATOR . $file . DIRECTORY_SEPARATOR . 'addon.php';
+  }
+
   clearstatcache();
 
   include_once getcwd() . DIRECTORY_SEPARATOR . 'theme' . DIRECTORY_SEPARATOR . getCurrentThemeFolder() . DIRECTORY_SEPARATOR . 'theme.php';
 
+  // ====== START ADMIN ROUTE ======= //
+
+  $clean_route = str_replace('/', '', $route);
+
+  $is_admin = false;
+
+  if(strpos($clean_route, 'mp-admin') === 0) {
+    $is_admin = true;
+    foreach(scandir('admin') as $addon) {
+      if(strpos($addon, 'addon') !== false) {
+        $addon_files[] = getcwd() . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . $addon;
+      }
+    }
+  }
+
+  // ====== END ADMIN ROUTE ======= //
+
   doHook('pre_addons_loaded');
 
   foreach($addon_files as $file) {
-    $fullFile = getcwd() . DIRECTORY_SEPARATOR . 'addons' . DIRECTORY_SEPARATOR . $file . DIRECTORY_SEPARATOR . 'addon.php';
+    $fullFile = $file;
 
     if(file_exists($fullFile)) {
       include_once $fullFile;
       doHook('addon_loaded', array('addon' => $addons[sizeof($addons)-1]));
     }
-    echo '<br />';
   }
+
   doHook('post_addons_loaded');
+
+  doHook('add_resources');
+
+  $route_resources[] = getResourcesByURL($route);
+
+  if(sizeof($route_resources) > 0) {
+    $obj = $route_resources[0];
+    if(sizeof($obj) > 0) {
+      $obj[0]->render();
+    }
+  }
 
   doHook('pre_page_load');
 
   doHook('page_load');
 
+  echo '<!DOCTYPE html><html><head>';
+
+  doHook('head_load');
+
+  doHook('post_head_load');
+
+  echo '</head><body>';
+
+  if(!$is_admin) {
+
+    doHook('body_load');
+
+    doHook('post_body_load');
+
+  } else {
+
+    doHook('admin_body_load');
+
+    doHook('admin_post_body_load');
+
+  }
+
   $time_end = microtime(true);
 
   mlog('It took ' . ($time_end - $time_start) . ' microseconds to load this page.<br />Start: ' . $time_start . '; End: ' . $time_end);
+
+  echo 'Route is: ', $route;
+
+  echo '</body>';
 
   ?>
