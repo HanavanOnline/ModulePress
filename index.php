@@ -5,6 +5,7 @@
   include_once('root/mp-config.php');
   include_once('root/database.php');
   include_once('root/hook.php');
+  include_once('root/filter.php');
   include_once('root/theme.php');
   include_once('root/addon.php');
   include_once('root/module.php');
@@ -20,7 +21,10 @@
 
   $database = new Database(DB_URI, DB_DATABASE, DB_USERNAME, DB_PASSWORD);
 
+  $database->doPrepareDatabase();
+
   $hooks = array();
+  $filters = array();
   $addons = array();
   $modules = array();
   $resources = array();
@@ -36,11 +40,26 @@
     $hooks[] = new Hook($key, $func);
   }
 
-  function doHook($key, $data = null) {
+  function doHook($key, &$data = null) {
     global $hooks;
     foreach($hooks as $hook) {
       if($hook->getKey() == $key) {
         $hook->call($data);
+      }
+    }
+  }
+
+  // Add a filter that may be called for future use. It is possible that the filter may never be called. $key is the name of the filter. $func is the callback function
+  function addFilter($key, $func) {
+    global $filters;
+    $filters[] = new Filter($key, $func);
+  }
+
+  function doFilter($key, &$data = null) {
+    global $filters;
+    foreach($filters as $filter) {
+      if($filter->getKey() == $key) {
+        $filter->call($data);
       }
     }
   }
@@ -188,7 +207,8 @@
 
     if(file_exists($fullFile)) {
       include_once $fullFile;
-      doHook('addon_loaded', array('addon' => $addons[sizeof($addons)-1]));
+      $data = array('addon' => $addons[sizeof($addons)-1]);
+      doHook('addon_loaded', $data);
     }
   }
 
@@ -207,6 +227,21 @@
 
   doHook('pre_page_load');
 
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = array();
+    $data[0] = $_POST;
+    $data[1] = array();
+    $data[2] = $_FILES;
+    doHook('handle_post_data', $data);
+    $res = $data[1];
+    if(sizeof($res) == 0) {
+      $res['mp'] = true;
+    }
+    $data[1] = $res;
+    echo json_encode($data);
+    exit();
+  }
+
   doHook('page_load');
 
   echo '<!DOCTYPE html><html><head>';
@@ -215,11 +250,17 @@
 
   doHook('post_head_load');
 
-  echo '</head><body>';
+  echo '</head>';
+
+  $body = '<body class="';
+
+  $body_classes = '';
 
   if(!$is_admin) {
 
     doHook('body_load');
+
+    echo $database->getPageContents($route);
 
     doHook('post_body_load');
 
@@ -233,7 +274,13 @@
 
   $time_end = microtime(true);
 
+  for($x = 0; $x < 10; $x++) {
+    echo '<br />';
+  }
+
   mlog('It took ' . ($time_end - $time_start) . ' microseconds to load this page.<br />Start: ' . $time_start . '; End: ' . $time_end);
+  if($is_admin) mlog('Admin Mode Enabled'); else mlog('Admin Mode Disabled');
+  mlog('User: ' . exec('whoami'));
 
   echo 'Route is: ', $route;
 
