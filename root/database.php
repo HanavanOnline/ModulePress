@@ -27,26 +27,44 @@
 
       $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-      return $result !== FALSE;
+      return $result === FALSE;
     }
 
     public function doPrepareDatabase() {
-      if($this->getTableExists('pages'))
-        return;
 
-      $stmt = $this->pdo->prepare("CREATE TABLE pages (id INT(10) NOT NULL AUTO_INCREMENT, title TEXT(255) NOT NULL, url TEXT(255) NOT NULL, content TEXT(65535) NOT NULL, PRIMARY KEY (id))");
+      if($this->getTableExists('pages')) {
 
-      $stmt->execute();
+        $stmt = $this->pdo->prepare("CREATE TABLE pages (id INT(10) NOT NULL AUTO_INCREMENT, title TEXT(255) NOT NULL, url TEXT(255) NOT NULL, content TEXT(65535) NOT NULL, PRIMARY KEY (id))");
 
-      $stmt = $this->pdo->prepare("CREATE TABLE users (id INT(10) NOT NULL AUTO_INCREMENT, username TEXT(255) NOT NULL, password TEXT(255) NOT NULL, slug TEXT(255) NOT NULL, PRIMARY KEY (id))");
+        $stmt->execute();
 
-      $stmt->execute();
+        $this->addTestPage();
 
-      $stmt = $this->pdo->prepare("CREATE TABLE media (id INT(10) NOT NULL AUTO_INCREMENT, filename TEXT(255) NOT NULL, title TEXT(255) NULL DEFAULT NULL, slug TEXT(255) NULL DEFAULT NULL, PRIMARY KEY (id))");
+      }
 
-      $stmt->execute();
+      if($this->getTableExists('users')) {
 
-      $this->addTestPage();
+        $stmt = $this->pdo->prepare("CREATE TABLE users (id INT(10) NOT NULL AUTO_INCREMENT, username TEXT(65535) NOT NULL, password TEXT(65535) NOT NULL, slug TEXT(255) NOT NULL, PRIMARY KEY (id))");
+
+        $stmt->execute();
+
+      }
+
+      if($this->getTableExists('media')) {
+
+        $stmt = $this->pdo->prepare("CREATE TABLE media (id INT(10) NOT NULL AUTO_INCREMENT, filename TEXT(65535) NOT NULL, title TEXT(65535) NULL DEFAULT NULL, slug TEXT(255) NULL DEFAULT NULL, PRIMARY KEY (id))");
+
+        $stmt->execute();
+
+      }
+
+      if($this->getTableExists('options')) {
+
+        $stmt = $this->pdo->prepare("CREATE TABLE options (id INT(10) NOT NULL AUTO_INCREMENT, data TEXT(255) NOT NULL, value TEXT(65535) NOT NULL, PRIMARY KEY (id))");
+
+        $stmt->execute();
+
+      }
 
     }
 
@@ -56,6 +74,17 @@
       $stmt->bindParam(':title', $title);
       $stmt->bindParam(':url', $url);
       $stmt->bindParam(':content', $content);
+
+      return $stmt->execute();
+
+    }
+
+    public function addMedia($title, $filename, $slug) {
+
+      $stmt = $this->pdo->prepare('INSERT INTO media (title, filename, slug) VALUES (:title, :filename, :slug)');
+      $stmt->bindParam(':title', $title);
+      $stmt->bindParam(':filename', $filename);
+      $stmt->bindParam(':slug', $slug);
 
       return $stmt->execute();
 
@@ -76,8 +105,12 @@
 
       }
 
-      $stmt = $this->pdo->prepare('SELECT * FROM pages WHERE title = "*:title*"');
-      $stmt->bindParam(':title', $title);
+    }
+
+    public function getMediaExists($filename) {
+
+      $stmt = $this->pdo->prepare('SELECT * FROM media WHERE filename = :filename');
+      $stmt->bindParam(':filename', $filename);
 
       $stmt->execute();
 
@@ -85,6 +118,17 @@
 
       return sizeof($result) > 0;
 
+    }
+
+    public function getMediaTitle($filename) {
+      $stmt = $this->pdo->prepare('SELECT title FROM media WHERE filename = :filename');
+      $stmt->bindParam(':filename', $filename);
+
+      $stmt->execute();
+
+      $result = $stmt->fetch()[0];
+
+      return $result;
     }
 
     public function getPageContents($url) {

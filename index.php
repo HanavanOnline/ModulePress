@@ -169,7 +169,33 @@
     return 'Hanavan Online Test Theme';
   }
 
+  function getMedia() {
+    return getMediaFilterFilename(null);
+  }
+
+  function getMediaFilterFilename($file = null) {
+    global $route;
+    global $database;
+    $medii = scandir('media');
+    $ret = array();
+    for($x = 0; $x < sizeof($medii); $x++) {
+      $img = $medii[$x];
+      if($database->getMediaExists($img)) {
+        $ret[] = $img;
+      }
+    }
+    return $ret;
+  }
+
   // ======= END CORE FUNCTIONS  ======= //
+
+  $path_array = explode('/', $route);
+
+  if(sizeof($path_array) > 1 && $path_array[0] == 'media' && $database->getMediaExists($path_array[1])) {
+    header('Content-Type: image');
+    echo file_get_contents('/var/www/html/' . ltrim($route, '/'));
+    exit;
+  }
 
   $addon_files = scandir('addons');
   $theme_files = scandir('theme');
